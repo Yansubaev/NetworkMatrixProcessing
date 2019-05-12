@@ -4,6 +4,7 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketException
 
 class Server{
     private val ss: ServerSocket
@@ -24,6 +25,7 @@ class Server{
             if (cs!=null) Client(cs, clients)
         }
     }
+
 
     class Client(s: Socket, private val clients: MutableList<Client>){
         var active: Boolean = true
@@ -49,12 +51,17 @@ class Server{
             }
         }
 
-        private fun run() = GlobalScope.launch{
-            while (active){
-                val data = receiver?.readLine()
-                parse(data ?: "")
+        private fun run() = GlobalScope.launch {
+                while (active) {
+                    try {
+                        val data = receiver?.readLine()
+                        parse(data ?: "")
+                    } catch (ex: SocketException) {
+                        println("Client \"${this@Client.name}\": " + ex.message)
+                        return@launch
+                    }
+                }
             }
-        }
 
         private fun parse(data: String){
             if (data.trim().isEmpty()) return

@@ -98,5 +98,5 @@ class MainFrame: JFrame() {
 
 fun main() {
     MainFrame()
-    DatabaseOperations()
+    //DatabaseOperations()
 }
