@@ -1,7 +1,5 @@
 import kotlinx.coroutines.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.PrintWriter
+import java.io.*
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -22,30 +20,29 @@ class Server{
             println("Ожидание подключения...")
             val cs = ss.accept()
             println("Клиент подключился...")
-            if (cs!=null) Client(cs, clients)
+            if (cs!=null)
+                Client(cs, clients)
         }
     }
 
 
     class Client(s: Socket, private val clients: MutableList<Client>){
-        var active: Boolean = true
-        var sender: PrintWriter? = null
-        var receiver: BufferedReader? = null
-        var name: String? = null
+        private var active: Boolean = true
+        private var name: String? = null
+        private var byteArray: ByteArray? = null
+        private var dataInputStream: DataInputStream? = null
+        private var dataOutputStream: DataOutputStream? = null
 
         init {
             try {
-                sender = PrintWriter(
-                    s.getOutputStream()
-                )
-                receiver = BufferedReader(
-                    InputStreamReader(
-                        s.getInputStream()
-                    )
-                )
+                dataInputStream = DataInputStream(s.getInputStream())
+                dataOutputStream = DataOutputStream(s.getOutputStream())
                 clients.add(this)
-                runBlocking { run() }
 
+                runBlocking { run() }
+                val matrix = Matrix(13, 15)
+                matrix.fillRandom(-99..99)
+                sendMatrix(matrix)
             } catch (e: Exception){
                 e.printStackTrace()
             }
@@ -54,8 +51,7 @@ class Server{
         private fun run() = GlobalScope.launch {
                 while (active) {
                     try {
-                        val data = receiver?.readLine()
-                        parse(data ?: "")
+                        val matrix = receiveMatrix()
                     } catch (ex: SocketException) {
                         println("Client \"${this@Client.name}\": " + ex.message)
                         return@launch
@@ -63,35 +59,31 @@ class Server{
                 }
             }
 
-        private fun parse(data: String){
-            if (data.trim().isEmpty()) return
-            val delim = ":"
-            val parts = data.split(delimiters = *arrayOf(delim), limit = 2)
-            if (parts[0].equals("LOGIN", true)){
-                var ok = true
-                for (c in clients){
-                    if (c.name?.equals(parts[1])==true){
-                        ok = false
-                        break
-                    }
-                }
-                if (ok) {
-                    name = parts[1]
-                    send("LOGIN:OK")
-                } else {
-                    send("LOGIN:FAILED")
-                }
-            }else {
-                println(data)
-                for(c in clients){
-                    c.send("MESSAGE:$name: $data")
-                }
-            }
+        private fun sendMatrix(matrix: Matrix){
+            val ba = matrix.getByteArray()
+            dataOutputStream?.writeInt(ba.size)
+            dataOutputStream?.flush()
+            dataOutputStream?.writeInt(matrix.rows)
+            dataOutputStream?.flush()
+            dataOutputStream?.writeInt(matrix.columns)
+            dataOutputStream?.flush()
+            dataOutputStream?.write(ba)
+            dataOutputStream?.flush()
         }
 
-        private fun send(s: String) {
-            sender?.println(s)
-            sender?.flush()
+        private fun receiveMatrix() : Matrix{
+            val size = dataInputStream?.readInt()
+            val rows = dataInputStream?.readInt()
+            val columns = dataInputStream?.readInt()
+            println("size=$size, rows=$rows, columns=$columns")
+
+            if (size != null) {
+                if (size > 0) {
+                    byteArray = ByteArray(size)
+                    dataInputStream?.read(byteArray, 0, byteArray?.size ?: 0)
+                }
+            }
+            return Matrix(byteArray, rows ?: 0, columns ?: 0)
         }
     }
 }

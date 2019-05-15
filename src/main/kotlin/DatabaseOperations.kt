@@ -57,7 +57,7 @@ class DatabaseOperations {
             println("DATABASE")
             val connection: Connection = DriverManager.getConnection(connectionURL, userName, password)
             val st: Statement = connection.createStatement()
-            val rs: ResultSet = st.executeQuery("SELECT * FROM Matrixes WHERE ID='14'")
+            val rs: ResultSet = st.executeQuery("SELECT * FROM Matrixes WHERE ID='16'")
             var rows = 0
             var columns = 0
             while(rs.next()){

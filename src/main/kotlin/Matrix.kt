@@ -62,13 +62,13 @@ class Matrix{
 
         this.rows = rows
         this.columns = columns
-        this.matrix = fromByteToInt(iar, rows, columns)
+        this.matrix = fromOneArrayToDoubleArray(iar, rows, columns)
     }
 
     //endregion Constructors
 
     //region Class Methods
-    private fun fromByteToInt(array: IntArray, rows: Int, columns: Int): Array<IntArray>{
+    private fun fromOneArrayToDoubleArray(array: IntArray, rows: Int, columns: Int): Array<IntArray>{
         val m = Array(rows){ IntArray(columns) }
         for (k in 0 until array.size){
             m[k/columns][k%columns] = array[k]
@@ -115,6 +115,17 @@ class Matrix{
         val ba = baos.toByteArray()
 
         return ByteArrayInputStream(ba)
+    }
+
+    fun getByteArray() : ByteArray{
+        val baos = ByteArrayOutputStream()
+        val dos = DataOutputStream(baos)
+        for(i in 0 until rows){
+            for (j in 0 until columns){
+                dos.writeInt(matrix[i][j])
+            }
+        }
+        return baos.toByteArray()
     }
 
     //endregion Class Methods

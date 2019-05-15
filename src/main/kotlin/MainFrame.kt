@@ -34,14 +34,14 @@ class MainFrame: JFrame() {
                 }
                 1 -> {
                     status++
-                    c.login(inputField.text)
+                    //c.login(inputField.text)
                     inputField.text = ""
                 }
                 2 -> {
                     println("status = 2")
                 }
                 3 -> {
-                    c.send(inputField.text)
+                    //c.send(inputField.text)
                     inputField.text = ""
                 }
             }
