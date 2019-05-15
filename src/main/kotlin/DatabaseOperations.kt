@@ -38,7 +38,7 @@ class DatabaseOperations {
             ps.executeUpdate()
             connection.commit()
             connection.close()
-            println("Puttin' successful")
+            println("Putting successful")
         } catch (ex: ClassNotFoundException){
             ex.printStackTrace()
             println("JDBC driver not found!")
@@ -54,7 +54,6 @@ class DatabaseOperations {
         var ba: ByteArray? = null
         var m: Matrix? = null
         try{
-            println("DATABASE")
             val connection: Connection = DriverManager.getConnection(connectionURL, userName, password)
             val st: Statement = connection.createStatement()
             val rs: ResultSet = st.executeQuery("SELECT * FROM Matrixes WHERE ID='16'")
@@ -67,8 +66,7 @@ class DatabaseOperations {
             }
             m = Matrix(ba, rows, columns)
             connection.close()
-            println("Gettin' successful")
-            connection.close()
+            println("Getting successful")
         } catch (ex: ClassNotFoundException){
             ex.printStackTrace()
             println("JDBC driver not found!")

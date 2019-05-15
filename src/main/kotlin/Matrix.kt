@@ -22,9 +22,7 @@ class Matrix{
     @Throws(MatrixException::class)
     constructor(rows: Int, columns: Int) {
         if (rows <= 0 || columns <= 0){
-            throw MatrixException(
-                Throwable("Invalid matrix dimensions specified")
-            )
+            throw MatrixException("Invalid matrix dimension specified")
         }
         this.rows = rows
         this.columns = columns
@@ -34,9 +32,7 @@ class Matrix{
     @Throws(MatrixException::class)
     constructor(size: Int){
         if (size <= 0){
-            throw MatrixException(
-                Throwable("Invalid matrix dimensions specified")
-            )
+            throw MatrixException("Invalid matrix dimension specified")
         }
         this.columns = size
         this.rows = size
@@ -52,9 +48,7 @@ class Matrix{
     @Throws(MatrixException::class)
     constructor(byteArray: ByteArray?, rows: Int, columns: Int) {
         if (rows <= 0 || columns <= 0){
-            throw MatrixException(
-                Throwable("Invalid matrix dimensions specified")
-            )
+            throw MatrixException("Invalid matrix dimension specified")
         }
         val ib: IntBuffer = ByteBuffer.wrap(byteArray).order(ByteOrder.BIG_ENDIAN).asIntBuffer()
         val iar = IntArray(ib.remaining())
@@ -63,6 +57,15 @@ class Matrix{
         this.rows = rows
         this.columns = columns
         this.matrix = fromOneArrayToDoubleArray(iar, rows, columns)
+    }
+    @Throws(MatrixException::class)
+    constructor(intArray: IntArray, rows: Int, columns: Int) {
+        if (rows <= 0 || columns <= 0){
+            throw MatrixException("Invalid matrix dimension specified")
+        }
+        this.rows = rows
+        this.columns = columns
+        this.matrix = fromOneArrayToDoubleArray(intArray, rows, columns)
     }
 
     //endregion Constructors
@@ -96,7 +99,7 @@ class Matrix{
     }
 
     fun fillRandom(range: IntRange){
-        val r = Random(0)
+        val r = Random
         for (i in 0 until rows){
             for(j in 0 until columns){
                 matrix[i][j] = r.nextInt(range.first, range.last)
@@ -136,9 +139,7 @@ class Matrix{
 @Throws(MatrixException::class)
 fun sumMatrixes(matrix1: Matrix, matrix2: Matrix) : Matrix{
     if (!checkMatrixes(matrix1, matrix2, false)) {
-        throw MatrixException(
-            Throwable("Invalid matrix dimensions specified")
-        )
+        throw MatrixException("Invalid matrix dimension specified")
     } else {
         val size: Int = if (!matrix1.checkSquare()) {
             if (matrix1.rows > matrix1.columns) matrix1.columns else matrix1.rows
@@ -159,12 +160,28 @@ fun sumMatrixes(matrix1: Matrix, matrix2: Matrix) : Matrix{
 
 @Throws(MatrixException::class)
 fun multiplyMatrixes(matrix1: Matrix, matrix2: Matrix): Matrix {
-    if (!checkMatrixes(matrix1, matrix2, true)) {
-        throw MatrixException(
-            Throwable("Invalid matrix dimensions specified")
-        )
+    val m1 = matrix1.matrix
+    val m2 = matrix2.matrix
+    val m1ColLength = m1[0].size // m1 columns length
+    val m2RowLength = m2.size    // m2 rows length
+    if (m1ColLength != m2RowLength) {
+        throw MatrixException("Invalid matrix dimension specified")
+        // matrix multiplication is not possible
     } else {
 
+        val mRRowLength = m1.size    // m result rows length
+        val mRColLength = m2[0].size // m result columns length
+        val mResult = Array(mRRowLength) { IntArray(mRColLength) }
+        for (i in 0 until mRRowLength) {         // rows from m1
+            for (j in 0 until mRColLength) {     // columns from m2
+                for (k in 0 until m1ColLength) { // columns from m1
+                    mResult[i][j] += m1[i][k] * m2[k][j]
+                }
+            }
+        }
+        return Matrix(mResult)
+
+/*
         val size: Int
         val n: Int
 
@@ -187,6 +204,7 @@ fun multiplyMatrixes(matrix1: Matrix, matrix2: Matrix): Matrix {
             }
         }
         return matrix
+*/
     }
 }
 
@@ -199,8 +217,7 @@ private fun checkMatrixes(matrix1: Matrix, matrix2: Matrix, forMultiply: Boolean
 
 //endregion Static methods
 
-class MatrixException(cause: Throwable) : Exception() {
-    override var cause: Throwable? = cause
-
-    fun cause() : Throwable? = cause
+class MatrixException(var mes: String) : Exception() {
+    override val message: String?
+        get() = mes
 }
